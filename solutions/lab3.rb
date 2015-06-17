@@ -12,8 +12,8 @@ class NFA
   def initialize(states, language, sigma, start_state, end_states)
     @states = states.uniq
     @start_state = start_state
-	  @language = language
-	  @end_states = @states & end_states	
+		@language = language
+		@end_states = @states & end_states	
     
 		raise ArgumentError, 'Start state can\'t be nil' if @start_state.nil? 
     raise ArgumentError, 'Start state is not in the available states' unless @states.include? start_state
@@ -93,7 +93,7 @@ end
 sigma = {
 	:q1 => {
 		'b'      => [:q2],
-	  :epsilon => [:q3],
+		:epsilon => [:q3],
 	},
 	:q2 => {
 		'a'      => [:q2, :q3],
