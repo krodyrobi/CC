@@ -2,8 +2,19 @@
 # Turing machine with 3 tapes that accepts a string under the form a b c
 # I chose this type of implementation because it is the most straight forward of them all (no nasty diagrams and stuff)
 #
-
-
+# Description:
+# (current_state, input) => (new state, write, motion)
+# (initial, 'a') => (a, 'a', Right)
+# (initial, _) => Move to halt => Reject
+# (a, 'a') => (a, 'a', Right)
+# (a, 'b') => (b, 'b', Right)
+# (b, 'b') => (b, 'b', Right)
+# (b, 'c') => (c, 'c', Right)
+# (b, _)   =>  REJECT
+# (c, 'c') => (c, 'c', Right)
+# (c, '') => (end, '', Hold)
+# Then during a loop we simply read from each tape 1 char if all are None we ACCEPT
+# IF at least one is None meaning, one tape has less than the others we REJECT 
 
 class Tape(object):
   def __init__(self, initial = None):
@@ -13,25 +24,25 @@ class Tape(object):
       self.tape = initial
 
     self.index = 0
-    if len(self.tape) == 0:
+    if len(self.tape) == 0:  #make sure the tape has elements where we point at
       self.tape.append(None)
 
   def left(self):
     self.index -= 1
-    if self.index < 0:
+    if self.index < 0: #make sure the tape has elements where we point at
       self.index = 0
       self.tape.insert(0, None)
 
   def right(self):
     self.index += 1
-    if self.index >= len(self.tape):
+    if self.index >= len(self.tape): #make sure the tape has elements where we point at
       self.tape.append(None)
 
   def read(self):
-    return self.tape[self.index]
+    return self.tape[self.index]     #fetch what is under the tape's head
 
   def write(self, value):
-    self.tape[self.index] = value
+    self.tape[self.index] = value    #update the value under the head
 
   def __str__(self):
     return str(self.index) + str(self.tape)
