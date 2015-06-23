@@ -2,41 +2,6 @@
 # A PDA that accepts a string under the form wcw
 # w = {a,b}*
 
-'''
-class Palindrome(object):
-  def __init__(self):
-    self.stack = []
-    self.state = 'w1'
-
-  def accept(word):
-    if self.state == 'w1':
-      if word[0] == 'a' or word[0] == 'b':
-        self.stack.append(word[0])
-      elif word[0] == 'c':
-        self.state = 'w2'
-      else:
-        self.state = 'reject'
-        
-        return self.accept(word[1:])
-    elif self.state == 'w2':
-      if word == '' and len(stack) == 0:
-        self.state == 'accept'
-      elif len(self.stack) == 0 or word[0] != self.stack.pop():
-        self.state == 'reject'
-        
-        return self.accept(word[1:])
-    elif self.state == 'accept':
-      return true
-    else:
-      return false
-
-pal = Palindrome()
-print(pal.accept('abcba'))
-print(pal.accept('abcb'))
-print(pal.accept('abcbab'))
-print(pal.accept('c'))
-'''
-
 class Palindrome(object):
     def __init__(self):
         self.stack = []
