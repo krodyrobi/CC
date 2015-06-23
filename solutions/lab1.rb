@@ -1,123 +1,122 @@
-#
-#
-# Man wolf cabbage goat problem
-#
-#
 
 require 'set'
 
-$illegals = [Set.new([:G, :C]), Set.new([:W, :G])]
-$movables = Set.new [:G, :W, :C, nil]
-
-#context = {
-# :shores => {
-#		:left  => Set,
-#		:right => Set
-# },
-#	:description => String
-#}
-#
-
-def print(context)
-	shores = context[:shores]
-	left, right = shores[:left], shores[:right]
-
-  verdict = '(OK)'
-	if invalid? context
-		verdict = '(ILLEGAL)'
-	end
-
-	puts "#{left.to_a.join + '-' + right.to_a.join} #{verdict}"
+class Set  
+  def to_s
+    # add to_s functionality to the Set class
+    self.to_a.to_s
+  end
 end
 
-def invalid?(context)
-	context[:shores].each_value do |shore|
-		next if shore.include? :M
+class State
+  attr_reader :parent, :left, :right
 
-		$illegals.each do |i|
-			return true if shore.superset? i
-		end
-	end
+  def initialize(left=[:m, :g, :c, :w], right=[], parent=nil)
+    @left = left.to_set
+    @right = right.to_set
 
-	return false
-end
+    #backlink for easy printout
+    @parent = parent
+  end
 
+  def move(obj)
+    left, right = [@left, @right].map(&:dup) # duplicate works here since we use symbols which are singletons
+    # see where the object lies and determine where it is supposed to go
+    from, to = @left.include?(obj) ? [left, right] : [right, left]
 
-def done?(context)
-	context[:shores][:left] == Set.new
-end
+    # if we are moving the man we simply remove it and place it on the other bank
+    if obj == :m
+      from.delete :m
+      to.add :m
+    elsif from.include? :m  # we are moving the man as well
+      from.delete :m
+      from.delete obj
+      
+      to.add :m
+      to.add obj
+    end
+    
+    State.new(left, right, self).legal    
+  end
 
+  def legal()
+    [@left, @right].each do |bank|
+      next if bank.include? :m
 
-def move(context, item)
-	shores = context[:shores].clone
+      return nil if bank.include?(:g) && bank.include?(:c)
+      return nil if bank.include?(:w) && bank.include?(:g)
+    end
 
-	farmer_on_left = shores[:left].include? :M
-	if farmer_on_left
-		src, dst = shores[:left], shores[:right]
-	else
-		src, dst= shores[:right], shores[:left]
-	end
+    self
+  end
 
-	return false unless src.include? item
-	
-	src.delete :M
-	dst.add :M
-	
-	if item.nil?
-		item = ''
-	else
-		src.delete item
-		dst.add item
-	end
-	string = "#{:M} + #{item} " + ((farmer_on_left) ? '-->' : '<--')
-	
-	return {
-		:shores => {
-			:left  => shores[:left],
-			:right => shores[:right]},
-		:description => string
-	}	
-end
+  def accept?
+    @left.empty? && @right == Set.new([:m, :w, :g, :c])
+  end
 
 
-def one_generation(context)
-	next_generations = []
-	
-	$movables.each do |m|
-		generation = move context, m
-		next_generations << generation if generation
-	end
-	
-	return next_generations
+  def eql?(o)
+    return false unless o.kind_of? State
+    @left == o.left && @right == o.right  # used for set comparison when hash is not unique
+  end
+
+  def hash
+    [@left.hash, @right.hash].hash        # used for set comparison
+  end
+
+  def to_s
+    banks = [@left, @right].map do |bank|
+      arr = bank.to_a
+      # converted to an array so I can sort the elements on a bank      
+      arr.sort.to_s
+    end
+
+    #join the 2 strings with - in between and remove : from the symbolic link output
+    banks.join(' - ').gsub(/:/, '')
+  end
 end
 
 
-$start_context = {
-	:shores   => {
-		:left   => Set.new([:M, :G, :W, :C]),
-		:right  => Set.new
-	},
-	:description => ''
-}
+def generate(moves)
+  # parsed states
+  states = [].to_set
 
-$solutions = []
-$previous_contexts = [$start_context]
-def generate(context)
-	#print context
-	next_generations = one_generation context
-	#puts next_generations
-	
-	next_generations.each do |generation|
-		next if invalid? generation
-		next if $previous_contexts.include? generation
+  # a queue for the states to be processed
+  new_states = [State.new].to_set
 
-		$previous_contexts << generation
-		generate generation
-	end
+
+
+  until new_states.empty?
+    # process only the states different than nil 
+    new_states = new_states.to_a.compact
+    states += new_states.to_set # record that we processed these states so we don't take them again
+
+    #apply all permutations(moves) on a given state
+    new_states = new_states.map { |state| moves.map { |a| state.move(a) } }
+                 .flatten.to_set
+
+    #removed all processed states from the new list
+    new_states -= states
+  end
+
+  accepted_states = states.keep_if { |state| state.accept? }
+
+  accepted_states.each do |state|
+    trace = [state]
+    until state.parent.nil?
+        trace << state.parent       
+        state = state.parent
+    end
+    trace << state.parent
+    puts trace.reverse
+    puts
+  end
 end
 
+#available moves
+moves = [:g, :c, :w, :m]
+generate(moves)
+generate(moves.reverse)
 
 
-generate($start_context)
 
-$solutions.each { |step| puts step }
